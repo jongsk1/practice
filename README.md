@@ -1,0 +1,2 @@
+# employee-api
+직원 긴급 연락망 API
