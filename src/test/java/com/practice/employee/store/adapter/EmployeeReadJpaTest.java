@@ -2,6 +2,7 @@ package com.practice.employee.store.adapter;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -10,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.UnitTest;
+import com.practice.employee.store.entity.Employee;
 import com.practice.employee.store.repository.EmployeeRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -146,6 +148,25 @@ class EmployeeReadJpaTest extends UnitTest {
       assertThat(pageInfo.getTotalCount()).isEqualTo(employeeListDomain.size());
 
       assertThat(result.getData()).isEqualTo(employeeListDomain);
+    }
+  }
+
+  @DisplayName("이름에 해당하는 직원 정보를 조회하는 메소드는")
+  @Nested
+  class findEmployeeByName {
+    @DisplayName("이름을 파라미터로 받는 EmployeeRepository 인터페이스의 메소드를 호출한다")
+    @Test
+    void test() {
+      var name = "직원이름";
+      var entity = mock(Employee.class);
+
+      when(employeeRepository.findByName(anyString())).thenReturn(List.of(entity));
+
+      var result = employeeReadJpa.findEmployeeByName(name);
+
+      verify(employeeRepository).findByName(eq(name));
+
+      assertThat(result).isNotEmpty();
     }
   }
 }

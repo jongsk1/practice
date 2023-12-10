@@ -5,7 +5,9 @@ import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.page.PageResponse.PageInfo;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.port.EmployeeReadStore;
+import com.practice.employee.store.entity.Employee;
 import com.practice.employee.store.repository.EmployeeRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Component;
@@ -37,5 +39,15 @@ public class EmployeeReadJpa implements EmployeeReadStore {
       ),
       page.getContent()
     );
+  }
+
+  @Transactional(readOnly = true)
+  @Override
+  public List<EmployeeDomain> findEmployeeByName(String name) {
+    var foundEmployees = employeeRepository.findByName(name);
+
+    return foundEmployees.stream()
+      .map(Employee::toDomain)
+      .toList();
   }
 }

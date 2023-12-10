@@ -21,3 +21,10 @@ spring:
 springdoc:
   swagger-ui:
     url: /docs/openapi3.json
+
+logging:
+  level:
+    org.hibernate.type.descriptor.sql: info
+    org.hibernate.SQL: debug
+  file:
+    name: ./logs/employee-api.log
