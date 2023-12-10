@@ -3,12 +3,13 @@ package com.practice.employee.web.controller;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
 import com.practice.employee.web.request.EmployeeReadRequest;
-import com.practice.employee.web.response.EmployeeListResponse;
+import com.practice.employee.web.response.EmployeeInfoResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,7 +23,7 @@ public class EmployeeController {
   @GetMapping
   public ResponseEntity<?> findEmployees(@Valid EmployeeReadRequest request) {
     log.info(
-      "직원 긴급 연락망 조회: {}",
+      "직원 정보 리스트 조회: {}",
       request
     );
 
@@ -35,8 +36,23 @@ public class EmployeeController {
         pageResponse.getPageInfo(),
         pageResponse.getData()
           .stream()
-          .map(EmployeeListResponse::toResponse)
+          .map(EmployeeInfoResponse::toResponse)
           .toList()
       ));
+  }
+
+  @GetMapping("/{name}")
+  public ResponseEntity<?> findEmployeeByName(@PathVariable String name) {
+    log.info(
+      "직원 이름으로 직원 정보 조회: {} ",
+      name
+    );
+
+    var employeeDomains = employeeUseCase.findEmployeeByName(name);
+
+    return ResponseEntity.ok()
+      .body(employeeDomains.stream()
+        .map(EmployeeInfoResponse::toResponse)
+        .toList());
   }
 }

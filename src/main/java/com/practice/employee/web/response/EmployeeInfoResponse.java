@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.practice.employee.domain.EmployeeDomain;
 import java.time.LocalDate;
 
-public record EmployeeListResponse(
+public record EmployeeInfoResponse(
   long employeeId,
   String name,
   String email,
@@ -12,10 +12,11 @@ public record EmployeeListResponse(
   @JsonFormat(pattern = "yyyy-MM-dd") LocalDate joined
 ) {
   /**
-   * 직원 리스트 도메인을 response로 변환
+   * 직원 도메인 정보로 response 생성
    */
-  public static EmployeeListResponse toResponse(EmployeeDomain domain) {
-    return new EmployeeListResponse(domain.employeeId(),
+  public static EmployeeInfoResponse toResponse(EmployeeDomain domain) {
+    return new EmployeeInfoResponse(
+      domain.employeeId(),
       domain.name(),
       domain.email(),
       domain.tel(),

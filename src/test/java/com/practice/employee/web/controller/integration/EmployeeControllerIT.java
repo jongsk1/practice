@@ -16,7 +16,7 @@ import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
 class EmployeeControllerIT extends IntegrationTest {
   private final String IDENTIFIER = "employee-api";
 
-  @DisplayName("직원 리스트 조회 통합 테스트")
+  @DisplayName("직원 정보 리스트 조회 통합 테스트")
   @Test
   void findEmployees() throws Exception {
     mockMvc.perform(RestDocumentationRequestBuilders.get(
@@ -47,6 +47,32 @@ class EmployeeControllerIT extends IntegrationTest {
           )
           .tag(IDENTIFIER)
           .description("직원 정보 리스트 조회")
+          .build())
+      ));
+  }
+
+  @DisplayName("직원 이름으로 직원 정보 조회 통합 테스트")
+  @Test
+  void findEmployeeByName() throws Exception {
+    mockMvc.perform(RestDocumentationRequestBuilders.get(
+        BASE_PATH + "/{name}",
+        "박효신"
+      ))
+      .andExpect(status().isOk())
+      .andDo(print())
+      .andDo(document(
+        IDENTIFIER + "/{method-name}",
+        resource(ResourceSnippetParameters.builder()
+          .pathParameters(parameterWithName("name").description("직원 이름"))
+          .responseFields(
+            fieldWithPath("[].employeeId").description("직원 정보 PK"),
+            fieldWithPath("[].name").description("직원 이름"),
+            fieldWithPath("[].email").description("직원 이메일"),
+            fieldWithPath("[].tel").description("직원 연락처"),
+            fieldWithPath("[].joined").description("직원 합류 날짜")
+          )
+          .tag(IDENTIFIER)
+          .description("직원 이름으로 직원 정보 조회")
           .build())
       ));
   }
