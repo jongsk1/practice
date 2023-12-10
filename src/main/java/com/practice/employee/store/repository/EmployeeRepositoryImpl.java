@@ -1,6 +1,6 @@
 package com.practice.employee.store.repository;
 
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -17,7 +17,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryExt {
   private final JPAQueryFactory queryFactory;
 
   @Override
-  public Page<EmployeeListDomain> findEmployees(
+  public Page<EmployeeDomain> findEmployees(
     EmployeeReadCriteria criteria,
     Pageable pageable
   ) {
@@ -26,7 +26,7 @@ public class EmployeeRepositoryImpl implements EmployeeRepositoryExt {
       .fetchOne();
 
     var employeeListDomains = queryFactory.select(Projections.constructor(
-        EmployeeListDomain.class,
+        EmployeeDomain.class,
         employee.employeeId,
         employee.name,
         employee.email,

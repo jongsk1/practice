@@ -1,6 +1,6 @@
 package com.practice.employee.store.adapter;
 
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.page.PageResponse.PageInfo;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
@@ -18,7 +18,7 @@ public class EmployeeReadJpa implements EmployeeReadStore {
 
   @Transactional(readOnly = true)
   @Override
-  public PageResponse<EmployeeListDomain> findEmployees(EmployeeReadCriteria criteria) {
+  public PageResponse<EmployeeDomain> findEmployees(EmployeeReadCriteria criteria) {
     var pageRequest = PageRequest.of(
       criteria.page() - 1,
       criteria.pageSize()

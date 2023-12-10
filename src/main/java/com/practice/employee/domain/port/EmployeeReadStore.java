@@ -1,6 +1,6 @@
 package com.practice.employee.domain.port;
 
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 
@@ -10,5 +10,7 @@ public interface EmployeeReadStore {
    *
    * @param criteria 직원 조회 criteria
    */
-  PageResponse<EmployeeListDomain> findEmployees(EmployeeReadCriteria criteria);
+  PageResponse<EmployeeDomain> findEmployees(EmployeeReadCriteria criteria);
+
+
 }
