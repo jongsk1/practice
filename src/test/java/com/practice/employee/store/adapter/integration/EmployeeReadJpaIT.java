@@ -13,7 +13,7 @@ class EmployeeReadJpaIT extends IntegrationTest {
   @Autowired
   private EmployeeReadJpa employeeReadJpa;
 
-  @DisplayName("직원 리스트 조회 store 통합 테스트")
+  @DisplayName("직원 정보 리스트 조회 store 통합 테스트")
   @Test
   void findEmployees() {
     var criteria = new EmployeeReadCriteria(
@@ -31,5 +31,18 @@ class EmployeeReadJpaIT extends IntegrationTest {
     assertThat(result.getData()).isNotEmpty();
     assertThat(result.getData()
       .size()).isEqualTo(criteria.pageSize());
+  }
+
+  @DisplayName("이름에 해당하는 직원 정보 조회 store 통합 테스트")
+  @Test
+  void findEmployeeByName() {
+    var name = "박효신";
+
+    var result = employeeReadJpa.findEmployeeByName(name);
+
+    assertThat(result).isNotEmpty();
+    assertThat(result.size()).isOne();
+    assertThat(result.get(0)
+      .name()).isEqualTo(name);
   }
 }
