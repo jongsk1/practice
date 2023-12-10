@@ -1,5 +1,6 @@
 package com.practice.employee.store.entity;
 
+import com.practice.employee.domain.EmployeeDomain;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -54,5 +55,18 @@ public class Employee {
   @PrePersist
   public void prePersist() {
     this.modifiedBy = this.createdBy;
+  }
+
+  /**
+   * 엔티티로 직원 정보 도메인 생성
+   */
+  public EmployeeDomain toDomain() {
+    return new EmployeeDomain(
+      this.employeeId,
+      this.name,
+      this.email,
+      this.tel,
+      this.joined
+    );
   }
 }
