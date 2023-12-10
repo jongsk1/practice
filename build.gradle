@@ -64,17 +64,13 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
 
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.2'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.0.4'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
 
     implementation 'com.opencsv:opencsv:5.8'
 
     testImplementation 'org.springframework.restdocs:spring-restdocs-mockmvc'
     testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.18.2'
-}
-
-test {
-    useJUnitPlatform()
 }
 
 tasks.withType(JavaCompile).configureEach {
@@ -90,10 +86,10 @@ clean {
 }
 
 openapi3 {
-    server = '/'
+    server = 'http://localhost:8080'
     title = 'Employee API 명세서'
     description = '직원 긴급 연락망 API'
-    version = '1.0' as Object
+    version = 'v1'
     format = 'json'
     tagDescriptionsPropertiesFile = 'src/test/resources/tag-descriptions.json'
 }
