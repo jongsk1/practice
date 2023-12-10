@@ -73,10 +73,6 @@ dependencies {
     testImplementation 'com.epages:restdocs-api-spec-mockmvc:0.18.2'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 tasks.withType(JavaCompile).configureEach {
     options.getGeneratedSourceOutputDirectory().set(file("$buildDir/generated"))
 }

@@ -35,7 +35,7 @@ class EmployeeReadJpaTest extends UnitTest {
   @Nested
   class findEmployees {
     @Captor
-    private ArgumentCaptor<PageRequest> pageRequestCaptor;
+    private ArgumentCaptor<PageRequest> captor;
     private EmployeeReadCriteria criteria;
     private Page page;
     private EmployeeListDomain domain1;
@@ -107,9 +107,9 @@ class EmployeeReadJpaTest extends UnitTest {
 
       employeeReadJpa.findEmployees(criteria);
 
-      verify(employeeRepository).findEmployees(eq(criteria), pageRequestCaptor.capture());
+      verify(employeeRepository).findEmployees(eq(criteria), captor.capture());
 
-      var pageRequest = pageRequestCaptor.getValue();
+      var pageRequest = captor.getValue();
 
       assertThat(pageRequest.getPageNumber()).isEqualTo(criteria.page() - 1);
       assertThat(pageRequest.getPageSize()).isEqualTo(criteria.pageSize());
@@ -129,9 +129,9 @@ class EmployeeReadJpaTest extends UnitTest {
 
       var result = employeeReadJpa.findEmployees(criteria);
 
-      verify(employeeRepository).findEmployees(eq(criteria), pageRequestCaptor.capture());
+      verify(employeeRepository).findEmployees(eq(criteria), captor.capture());
 
-      var pageRequest = pageRequestCaptor.getValue();
+      var pageRequest = captor.getValue();
 
       assertThat(pageRequest.getPageNumber()).isEqualTo(criteria.page() - 1);
       assertThat(pageRequest.getPageSize()).isEqualTo(criteria.pageSize());
