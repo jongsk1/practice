@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import com.practice.employee.UnitTest;
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
@@ -86,7 +86,7 @@ class EmployeeControllerTest extends UnitTest {
       var page = 1;
       var pageSize = 2;
       var pageInfo = new PageResponse.PageInfo(page, pageSize, 1L);
-      var domain = new EmployeeListDomain(
+      var domain = new EmployeeDomain(
         1L,
         "김범수",
         "beomsu.kim@singer.com",

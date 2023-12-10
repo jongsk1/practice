@@ -1,6 +1,6 @@
 package com.practice.employee.web.service;
 
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.port.EmployeeReadStore;
@@ -16,7 +16,7 @@ public class EmployeeService implements EmployeeUseCase {
 
   @Transactional(readOnly = true)
   @Override
-  public PageResponse<EmployeeListDomain> findEmployees(EmployeeReadCriteria criteria) {
+  public PageResponse<EmployeeDomain> findEmployees(EmployeeReadCriteria criteria) {
     return employeeReadStore.findEmployees(criteria);
   }
 }

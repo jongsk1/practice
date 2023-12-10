@@ -7,7 +7,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.practice.employee.domain.EmployeeListDomain;
+import com.practice.employee.domain.EmployeeDomain;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.UnitTest;
 import com.practice.employee.store.repository.EmployeeRepository;
@@ -38,11 +38,11 @@ class EmployeeReadJpaTest extends UnitTest {
     private ArgumentCaptor<PageRequest> captor;
     private EmployeeReadCriteria criteria;
     private Page page;
-    private EmployeeListDomain domain1;
-    private EmployeeListDomain domain2;
-    private EmployeeListDomain domain3;
-    private EmployeeListDomain domain4;
-    private List<EmployeeListDomain> employeeListDomainList;
+    private EmployeeDomain domain1;
+    private EmployeeDomain domain2;
+    private EmployeeDomain domain3;
+    private EmployeeDomain domain4;
+    private List<EmployeeDomain> employeeListDomain;
 
     @BeforeEach
     void prepare() {
@@ -53,7 +53,7 @@ class EmployeeReadJpaTest extends UnitTest {
 
       this.page = mock(Page.class);
 
-      this.domain1 = new EmployeeListDomain(
+      this.domain1 = new EmployeeDomain(
         1,
         "김범수",
         "beomsu.kim@singer.com",
@@ -61,7 +61,7 @@ class EmployeeReadJpaTest extends UnitTest {
         LocalDate.now()
       );
 
-      this.domain2 = new EmployeeListDomain(
+      this.domain2 = new EmployeeDomain(
         2,
         "유나얼",
         "naul.yu@singer.com",
@@ -69,7 +69,7 @@ class EmployeeReadJpaTest extends UnitTest {
         LocalDate.now()
       );
 
-      this.domain3 = new EmployeeListDomain(
+      this.domain3 = new EmployeeDomain(
         3,
         "박효신",
         "hyoshin.park@singer.com",
@@ -77,7 +77,7 @@ class EmployeeReadJpaTest extends UnitTest {
         LocalDate.now()
       );
 
-      this.domain4 = new EmployeeListDomain(
+      this.domain4 = new EmployeeDomain(
         4,
         "이수",
         "su.lee@singer.com",
@@ -85,7 +85,7 @@ class EmployeeReadJpaTest extends UnitTest {
         LocalDate.now()
       );
 
-      this.employeeListDomainList = List.of(
+      this.employeeListDomain = List.of(
         this.domain1,
         this.domain2,
         this.domain3,
@@ -101,9 +101,9 @@ class EmployeeReadJpaTest extends UnitTest {
         any(Pageable.class)
       )).thenReturn(page);
 
-      when(page.getTotalElements()).thenReturn((long) employeeListDomainList.size());
+      when(page.getTotalElements()).thenReturn((long) employeeListDomain.size());
 
-      when(page.getContent()).thenReturn(employeeListDomainList);
+      when(page.getContent()).thenReturn(employeeListDomain);
 
       employeeReadJpa.findEmployees(criteria);
 
@@ -123,9 +123,9 @@ class EmployeeReadJpaTest extends UnitTest {
         any(Pageable.class)
       )).thenReturn(page);
 
-      when(page.getTotalElements()).thenReturn((long) employeeListDomainList.size());
+      when(page.getTotalElements()).thenReturn((long) employeeListDomain.size());
 
-      when(page.getContent()).thenReturn(employeeListDomainList);
+      when(page.getContent()).thenReturn(employeeListDomain);
 
       var result = employeeReadJpa.findEmployees(criteria);
 
@@ -143,9 +143,9 @@ class EmployeeReadJpaTest extends UnitTest {
 
       assertThat(pageInfo.getPage()).isEqualTo(criteria.page());
       assertThat(pageInfo.getPageSize()).isEqualTo(criteria.pageSize());
-      assertThat(pageInfo.getTotalCount()).isEqualTo(employeeListDomainList.size());
+      assertThat(pageInfo.getTotalCount()).isEqualTo(employeeListDomain.size());
 
-      assertThat(result.getData()).isEqualTo(employeeListDomainList);
+      assertThat(result.getData()).isEqualTo(employeeListDomain);
     }
   }
 }
