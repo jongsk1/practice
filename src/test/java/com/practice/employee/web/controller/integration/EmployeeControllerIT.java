@@ -3,23 +3,35 @@ package com.practice.employee.web.controller.integration;
 import static com.epages.restdocs.apispec.MockMvcRestDocumentationWrapper.document;
 import static com.epages.restdocs.apispec.ResourceDocumentation.parameterWithName;
 import static com.epages.restdocs.apispec.ResourceDocumentation.resource;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.restdocs.payload.PayloadDocumentation.fieldWithPath;
+import static org.springframework.restdocs.request.RequestDocumentation.partWithName;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.epages.restdocs.apispec.ResourceSnippetParameters;
 import com.practice.employee.IntegrationTest;
+import com.practice.employee.store.repository.EmployeeRepository;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.transaction.annotation.Transactional;
+
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.get;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
+import static org.springframework.restdocs.request.RequestDocumentation.requestParts;
 
 class EmployeeControllerIT extends IntegrationTest {
   private final String IDENTIFIER = "employee-api";
+  @Autowired
+  private EmployeeRepository employeeRepository;
 
   @DisplayName("직원 정보 리스트 조회 통합 테스트")
   @Test
   void findEmployees() throws Exception {
-    mockMvc.perform(RestDocumentationRequestBuilders.get(
+    mockMvc.perform(get(
         BASE_PATH + "?page={page}&pageSize={pageSize}",
         1,
         2
@@ -43,7 +55,7 @@ class EmployeeControllerIT extends IntegrationTest {
             fieldWithPath("data[].name").description("직원 이름"),
             fieldWithPath("data[].email").description("직원 이메일"),
             fieldWithPath("data[].tel").description("직원 연락처"),
-            fieldWithPath("data[].joined").description("직원 합류 날짜")
+            fieldWithPath("data[].joined").description("직원 입사일")
           )
           .tag(IDENTIFIER)
           .description("직원 정보 리스트 조회")
@@ -54,7 +66,7 @@ class EmployeeControllerIT extends IntegrationTest {
   @DisplayName("직원 이름으로 직원 정보 조회 통합 테스트")
   @Test
   void findEmployeeByName() throws Exception {
-    mockMvc.perform(RestDocumentationRequestBuilders.get(
+    mockMvc.perform(get(
         BASE_PATH + "/{name}",
         "박효신"
       ))
@@ -69,11 +81,61 @@ class EmployeeControllerIT extends IntegrationTest {
             fieldWithPath("[].name").description("직원 이름"),
             fieldWithPath("[].email").description("직원 이메일"),
             fieldWithPath("[].tel").description("직원 연락처"),
-            fieldWithPath("[].joined").description("직원 합류 날짜")
+            fieldWithPath("[].joined").description("직원 입사일")
           )
           .tag(IDENTIFIER)
           .description("직원 이름으로 직원 정보 조회")
           .build())
       ));
+  }
+
+  // todo OpenAPI v3 에서 requestParts 인식 못하는 부분 해결 필요
+  @Transactional
+  @DisplayName("csv 파일 내용으로 직원 정보를 생성 통합 테스트")
+  @Test
+  void createEmployeeByCsvFile() throws Exception {
+    var employeeName1 = "김길동";
+    var employeeName2 = "이길동";
+
+    var csvContent = """
+      $EMPLOYEE_NAME_1,kildong.kim@clovf.com,01056785678,2023.12.01
+      $EMPLOYEE_NAME_2,kildong.lee@clovf.com,01067896789,2023.11.01
+      """.replace(
+        "$EMPLOYEE_NAME_1",
+        employeeName1
+      )
+      .replace(
+        "$EMPLOYEE_NAME_2",
+        employeeName2
+      );
+
+    var mockMultipartFile = new MockMultipartFile(
+      "csvFile",
+      "create_employee.csv",
+      "text/csv",
+      csvContent.getBytes(StandardCharsets.UTF_8)
+    );
+
+    mockMvc.perform(multipart(BASE_PATH + "/import/csv").file(mockMultipartFile)
+        .characterEncoding(StandardCharsets.UTF_8))
+      .andExpect(status().isCreated())
+      .andDo(print())
+      .andDo(document(
+        IDENTIFIER + "/{method-name}",
+        requestParts(partWithName("csvFile").description("csv 파일")),
+        resource(ResourceSnippetParameters.builder()
+          .tag(IDENTIFIER)
+          .summary("csv 파일 내용으로 직원 직원 정보 생성")
+          .description("csv 파일 내용으로 직원 직원 정보 생성<br/>OpenAPI v3 에서 requestParts 인식 못하는 부분 해결 필요")
+          .build())
+      ));
+
+    var result1 = employeeRepository.findByName(employeeName1);
+
+    assertThat(result1).isNotEmpty();
+
+    var result2 = employeeRepository.findByName(employeeName2);
+
+    assertThat(result2).isNotEmpty();
   }
 }

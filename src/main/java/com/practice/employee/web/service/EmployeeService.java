@@ -1,6 +1,7 @@
 package com.practice.employee.web.service;
 
 import com.practice.employee.domain.EmployeeDomain;
+import com.practice.employee.domain.command.EmployeeCreateCommand;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.port.EmployeeReadStore;
@@ -25,5 +26,11 @@ public class EmployeeService implements EmployeeUseCase {
   @Override
   public List<EmployeeDomain> findEmployeeByName(String name) {
     return employeeReadStore.findEmployeeByName(name);
+  }
+
+  @Transactional
+  @Override
+  public void createEmployee(EmployeeCreateCommand command) {
+    employeeReadStore.createEmployee(command);
   }
 }

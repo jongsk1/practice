@@ -41,6 +41,7 @@ out/
 
 ### Log ###
 *.log
+*.gz
 
 ### MAC ###
 .DS_Store
