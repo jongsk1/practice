@@ -1,6 +1,7 @@
 # employee-api
 
 <h3>Spec.</h3>
+
 - java: 17
 - springboot: 3.1.1
 - db: H2
