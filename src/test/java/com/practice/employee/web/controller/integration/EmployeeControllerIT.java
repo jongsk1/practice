@@ -235,7 +235,7 @@ class EmployeeControllerIT extends IntegrationTest {
           .requestFields(fieldWithPath("content").description("csv 형식의 직원 생성 정보"))
           .tag(IDENTIFIER)
           .summary("직원 정보 생성")
-          .description("csv 형식의 직원 정보 request로 직원 정보 생성")
+          .description("직원 정보 생성 request로 직원 정보 생성")
           .build())
       ));
 
@@ -291,7 +291,7 @@ class EmployeeControllerIT extends IntegrationTest {
           .requestFields(fieldWithPath("content").description("json 형식의 직원 생성 정보"))
           .tag(IDENTIFIER)
           .summary("직원 정보 생성")
-          .description("json 형식의 직원 정보 request로 직원 정보 생성")
+          .description("직원 정보 생성 request로 직원 정보 생성")
           .build())
       ));
 
