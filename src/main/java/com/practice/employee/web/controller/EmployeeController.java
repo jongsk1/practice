@@ -62,12 +62,27 @@ public class EmployeeController {
         .toList());
   }
 
-  @PostMapping(value = "/import/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "/upload/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<?> createEmployeeByCsvFile(@RequestPart("csvFile") MultipartFile csvFile) {
     var command = FileReader.csvToEmployeeCreateCommand(csvFile);
 
     log.info(
       "csv 파일 정보로 직원 정보 생성: {}",
+      command
+    );
+
+    employeeUseCase.createEmployee(command);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .build();
+  }
+
+  @PostMapping(value = "/upload/json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> createEmployeeByJsonFile(@RequestPart("jsonFile") MultipartFile jsonFile) {
+    var command = FileReader.jsonToEmployeeCreateCommand(jsonFile);
+
+    log.info(
+      "json 파일 정보로 직원 정보 생성: {}",
       command
     );
 

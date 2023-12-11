@@ -97,7 +97,7 @@ class EmployeeControllerIT extends IntegrationTest {
     var employeeName1 = "김길동";
     var employeeName2 = "이길동";
 
-    var csvContent = """
+    var content = """
       $EMPLOYEE_NAME_1,kildong.kim@clovf.com,01056785678,2023.12.01
       $EMPLOYEE_NAME_2,kildong.lee@clovf.com,01067896789,2023.11.01
       """.replace(
@@ -113,10 +113,10 @@ class EmployeeControllerIT extends IntegrationTest {
       "csvFile",
       "create_employee.csv",
       "text/csv",
-      csvContent.getBytes(StandardCharsets.UTF_8)
+      content.getBytes(StandardCharsets.UTF_8)
     );
 
-    mockMvc.perform(multipart(BASE_PATH + "/import/csv").file(mockMultipartFile)
+    mockMvc.perform(multipart(BASE_PATH + "/upload/csv").file(mockMultipartFile)
         .characterEncoding(StandardCharsets.UTF_8))
       .andExpect(status().isCreated())
       .andDo(print())
@@ -127,6 +127,68 @@ class EmployeeControllerIT extends IntegrationTest {
           .tag(IDENTIFIER)
           .summary("csv 파일 내용으로 직원 직원 정보 생성")
           .description("csv 파일 내용으로 직원 직원 정보 생성<br/>OpenAPI v3 에서 requestParts 인식 못하는 부분 해결 필요")
+          .build())
+      ));
+
+    var result1 = employeeRepository.findByName(employeeName1);
+
+    assertThat(result1).isNotEmpty();
+
+    var result2 = employeeRepository.findByName(employeeName2);
+
+    assertThat(result2).isNotEmpty();
+  }
+
+  // todo OpenAPI v3 에서 requestParts 인식 못하는 부분 해결 필요
+  @Transactional
+  @DisplayName("json 파일 내용으로 직원 정보를 생성 통합 테스트")
+  @Test
+  void createEmployeeByJsonFile() throws Exception {
+    var employeeName1 = "김길동";
+    var employeeName2 = "이길동";
+
+    var content = """
+        [
+          {
+            "name":"$EMPLOYEE_NAME_1",
+            "email":"kildong.kim@clovf.com",
+            "tel":"010-5678-5678",
+            "joined":"2023-12-01"
+          },
+          {
+            "name":"$EMPLOYEE_NAME_2",
+            "email":"kildong.lee@clovf.com",
+            "tel":"010-6789-6789",
+            "joined":"2023-11-01"
+          }
+        ]
+        """.replace(
+        "$EMPLOYEE_NAME_1",
+        employeeName1
+      )
+      .replace(
+        "$EMPLOYEE_NAME_2",
+        employeeName2
+      );
+
+    var mockMultipartFile = new MockMultipartFile(
+      "jsonFile",
+      "create_employee.json",
+      "application/json",
+      content.getBytes(StandardCharsets.UTF_8)
+    );
+
+    mockMvc.perform(multipart(BASE_PATH + "/upload/json").file(mockMultipartFile)
+        .characterEncoding(StandardCharsets.UTF_8))
+      .andExpect(status().isCreated())
+      .andDo(print())
+      .andDo(document(
+        IDENTIFIER + "/{method-name}",
+        requestParts(partWithName("jsonFile").description("json 파일")),
+        resource(ResourceSnippetParameters.builder()
+          .tag(IDENTIFIER)
+          .summary("json 파일 내용으로 직원 직원 정보 생성")
+          .description("json 파일 내용으로 직원 직원 정보 생성<br/>OpenAPI v3 에서 requestParts 인식 못하는 부분 해결 필요")
           .build())
       ));
 
