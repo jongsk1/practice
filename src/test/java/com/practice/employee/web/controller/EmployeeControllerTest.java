@@ -5,9 +5,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
+import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -16,13 +18,17 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.practice.employee.UnitTest;
 import com.practice.employee.domain.EmployeeDomain;
+import com.practice.employee.domain.command.EmployeeCreateCommand;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
+import com.practice.employee.web.config.RestExceptionAdvisor;
 import com.practice.employee.web.response.EmployeeInfoResponse;
+import com.practice.employee.web.utils.FileReader;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -31,7 +37,10 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.multipart.MultipartFile;
 
 class EmployeeControllerTest extends UnitTest {
   @InjectMocks
@@ -42,6 +51,7 @@ class EmployeeControllerTest extends UnitTest {
   @BeforeEach
   void prepare() {
     this.mockMvc = MockMvcBuilders.standaloneSetup(employeeController)
+      .setControllerAdvice(RestExceptionAdvisor.class)
       .build();
   }
 
@@ -226,6 +236,90 @@ class EmployeeControllerTest extends UnitTest {
 
       assertThat(employeeInfoResponse).usingRecursiveComparison()
         .isEqualTo(domain);
+    }
+  }
+
+  @DisplayName("csv 파일 정보로 직원 정보를 생성하는 메소드는")
+  @Nested
+  class createEmployeeByCsvFile {
+    private MockMultipartFile mockMultipartFile;
+    private MockedStatic<FileReader> fileReader;
+
+    @BeforeEach
+    void prepare() {
+      var content = """
+        김길동,kildong.kim@clovf.com,01056785678,2023.12.01
+        이길동,kildong.lee@clovf.com,01067896789,2023.11.01
+        """;
+
+      this.mockMultipartFile = new MockMultipartFile(
+        "csvFile",
+        "create_employee.csv",
+        "multipart/form-data;charset=UTF-8",
+        content.getBytes(StandardCharsets.UTF_8)
+      );
+
+      this.fileReader = mockStatic(FileReader.class);
+    }
+
+    @AfterEach
+    void destroy() {
+      fileReader.close();
+    }
+
+    @DisplayName("csv 파일 검증 오류 시 에러를 반환한다")
+    @Test
+    void test1() throws Exception {
+      fileReader.when(() -> FileReader.csvToEmployeeCreateCommand(any(MultipartFile.class)))
+        .thenThrow(RuntimeException.class);
+
+      mockMvc.perform(multipart(BASE_PATH + "/import/csv").file(mockMultipartFile)
+          .characterEncoding(StandardCharsets.UTF_8))
+        .andExpect(status().isBadRequest());
+
+      verifyNoInteractions(employeeUseCase);
+    }
+
+    @DisplayName("csv 파일 내용으로 만든 커맨드로 EmployeeUseCase 인터페이스의 직원 정보 생성 메소드를 호출한다")
+    @Test
+    void test2() throws Exception {
+      var employeeCreateInfo1 = new EmployeeCreateCommand.EmployeeCreateInfo(
+        "김길동",
+        "kildong.kim@clovf.com",
+        "010-5678-5678",
+        LocalDate.of(
+          2023,
+          12,
+          1
+        )
+      );
+      var employeeCreateInfo2 = new EmployeeCreateCommand.EmployeeCreateInfo(
+        "이길동",
+        "kildong.lee@clovf.com",
+        "010-6789-6789",
+        LocalDate.of(
+          2023,
+          11,
+          1
+        )
+      );
+      var command = new EmployeeCreateCommand(
+        List.of(
+          employeeCreateInfo1,
+          employeeCreateInfo2
+        ),
+        "system"
+      );
+
+      fileReader.when(() -> FileReader.csvToEmployeeCreateCommand(any(MultipartFile.class)))
+        .thenReturn(command);
+
+      mockMvc.perform(multipart(BASE_PATH + "/import/csv").file(
+            "csvFile",
+            mockMultipartFile.getBytes()
+          )
+          .characterEncoding(StandardCharsets.UTF_8))
+        .andExpect(status().isCreated());
     }
   }
 }

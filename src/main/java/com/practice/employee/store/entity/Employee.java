@@ -58,6 +58,29 @@ public class Employee {
   }
 
   /**
+   * 직원 정보 등록 생성자
+   *
+   * @param name      직원 이름
+   * @param email     직원 이메일
+   * @param tel       직원 연락처
+   * @param joined    직원 입사일
+   * @param createdBy 등록자
+   */
+  public Employee(
+    String name,
+    String email,
+    String tel,
+    LocalDate joined,
+    String createdBy
+  ) {
+    this.name = name;
+    this.email = email;
+    this.tel = tel;
+    this.joined = joined;
+    this.createdBy = createdBy;
+  }
+
+  /**
    * 엔티티로 직원 정보 도메인 생성
    */
   public EmployeeDomain toDomain() {

@@ -9,6 +9,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.practice.employee.domain.EmployeeDomain;
+import com.practice.employee.domain.command.EmployeeCreateCommand;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.UnitTest;
 import com.practice.employee.store.entity.Employee;
@@ -109,7 +110,10 @@ class EmployeeReadJpaTest extends UnitTest {
 
       employeeReadJpa.findEmployees(criteria);
 
-      verify(employeeRepository).findEmployees(eq(criteria), captor.capture());
+      verify(employeeRepository).findEmployees(
+        eq(criteria),
+        captor.capture()
+      );
 
       var pageRequest = captor.getValue();
 
@@ -131,7 +135,10 @@ class EmployeeReadJpaTest extends UnitTest {
 
       var result = employeeReadJpa.findEmployees(criteria);
 
-      verify(employeeRepository).findEmployees(eq(criteria), captor.capture());
+      verify(employeeRepository).findEmployees(
+        eq(criteria),
+        captor.capture()
+      );
 
       var pageRequest = captor.getValue();
 
@@ -151,7 +158,7 @@ class EmployeeReadJpaTest extends UnitTest {
     }
   }
 
-  @DisplayName("이름에 해당하는 직원 정보를 조회하는 메소드는")
+  @DisplayName("직원 이름으로 직원 정보를 조회하는 메소드는")
   @Nested
   class findEmployeeByName {
     @DisplayName("이름을 파라미터로 받는 EmployeeRepository 인터페이스의 메소드를 호출한다")
@@ -167,6 +174,86 @@ class EmployeeReadJpaTest extends UnitTest {
       verify(employeeRepository).findByName(eq(name));
 
       assertThat(result).isNotEmpty();
+    }
+  }
+
+  @DisplayName("직원 정보를 생성하는 메소드는")
+  @Nested
+  class createEmployee {
+    @Captor
+    private ArgumentCaptor<List<Employee>> captor;
+    private EmployeeCreateCommand command;
+
+    @BeforeEach
+    void prepare() {
+      var employeeCreateInfo1 = new EmployeeCreateCommand.EmployeeCreateInfo(
+        "김길동",
+        "kildong.kim@clovf.com",
+        "010-5678-5678",
+        LocalDate.of(
+          2023,
+          12,
+          1
+        )
+      );
+      var employeeCreateInfo2 = new EmployeeCreateCommand.EmployeeCreateInfo(
+        "이길동",
+        "kildong.lee@clovf.com",
+        "010-6789-6789",
+        LocalDate.of(
+          2023,
+          11,
+          1
+        )
+      );
+      this.command = new EmployeeCreateCommand(
+        List.of(
+          employeeCreateInfo1,
+          employeeCreateInfo2
+        ),
+        "system"
+      );
+    }
+
+    @DisplayName("직원 생성 커맨드로 엔티티를 생성하고 EmployeeRepository 인터페이스의 직원 정보 생성 메소드를 호출한다")
+    @Test
+    void test() {
+      employeeReadJpa.createEmployee(command);
+
+      verify(employeeRepository).saveAll(captor.capture());
+
+      var entities = captor.getValue();
+
+      assertThat(entities).isNotEmpty();
+
+      assertThat(entities.size()).isEqualTo(command.employeeCreateInfoList()
+        .size());
+
+      assertThat(entities.get(0)).usingRecursiveComparison()
+        .ignoringFields(
+          "employeeId",
+          "createdBy",
+          "createdAt",
+          "modifiedBy",
+          "modifiedAt"
+        )
+        .isEqualTo(command.employeeCreateInfoList()
+          .get(0));
+
+      assertThat(entities.get(0).getCreatedBy()).isEqualTo(command.createdBy());
+
+      assertThat(entities.get(1)).usingRecursiveComparison()
+        .ignoringFields(
+          "employeeId",
+          "createdBy",
+          "createdAt",
+          "modifiedBy",
+          "modifiedAt"
+        )
+        .isEqualTo(command.employeeCreateInfoList()
+          .get(1));
+
+      assertThat(entities.get(1).getCreatedBy()).isEqualTo(command.createdBy());
     }
   }
 }

@@ -4,14 +4,20 @@ import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
 import com.practice.employee.web.request.EmployeeReadRequest;
 import com.practice.employee.web.response.EmployeeInfoResponse;
+import com.practice.employee.web.utils.FileReader;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,5 +60,20 @@ public class EmployeeController {
       .body(employeeDomains.stream()
         .map(EmployeeInfoResponse::toResponse)
         .toList());
+  }
+
+  @PostMapping(value = "/import/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> createEmployeeByCsvFile(@RequestPart("csvFile") MultipartFile csvFile) {
+    var command = FileReader.csvToEmployeeCreateCommand(csvFile);
+
+    log.info(
+      "csv 파일 정보로 직원 정보 생성: {}",
+      command
+    );
+
+    employeeUseCase.createEmployee(command);
+
+    return ResponseEntity.status(HttpStatus.CREATED)
+      .build();
   }
 }

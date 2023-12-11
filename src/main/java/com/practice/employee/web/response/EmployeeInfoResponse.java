@@ -12,7 +12,7 @@ public record EmployeeInfoResponse(
   @JsonFormat(pattern = "yyyy-MM-dd") LocalDate joined
 ) {
   /**
-   * 직원 도메인 정보로 response 생성
+   * 직원 정보 도메인으로 response 생성
    */
   public static EmployeeInfoResponse toResponse(EmployeeDomain domain) {
     return new EmployeeInfoResponse(

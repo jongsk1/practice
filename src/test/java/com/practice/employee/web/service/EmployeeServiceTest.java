@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import com.practice.employee.UnitTest;
 import com.practice.employee.domain.EmployeeDomain;
+import com.practice.employee.domain.command.EmployeeCreateCommand;
 import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.port.EmployeeReadStore;
@@ -75,6 +76,20 @@ class EmployeeServiceTest extends UnitTest {
       verify(employeeReadStore).findEmployeeByName(eq(name));
 
       assertThat(result).isEqualTo(List.of(domain));
+    }
+  }
+
+  @DisplayName("직원 정보를 생성하는 메소드는")
+  @Nested
+  class createEmployee {
+    @DisplayName("직원 생성 커맨드를 파라미터로 받는 EmployeeReadStore 인터페이스의 메소드를 호출한다")
+    @Test
+    void test() {
+      var command = mock(EmployeeCreateCommand.class);
+
+      employeeService.createEmployee(command);
+
+      verify(employeeReadStore).createEmployee(eq(command));
     }
   }
 }
