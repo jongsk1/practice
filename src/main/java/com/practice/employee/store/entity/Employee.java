@@ -29,10 +29,10 @@ public class Employee {
   @Column(length = 100, nullable = false)
   private String name;
 
-  @Column(length = 100, nullable = false)
+  @Column(unique = true, length = 100, nullable = false)
   private String email;
 
-  @Column(length = 100, nullable = false)
+  @Column(unique = true, length = 100, nullable = false)
   private String tel;
 
   @Column(nullable = false)

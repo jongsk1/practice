@@ -10,57 +10,48 @@ import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 
 class FileReaderTest {
-  @DisplayName("csv 파일 정보로 직원 정보 생성 커맨드를 생성하는 메소드는")
+  @DisplayName("csv 또는 json 파일 내용으로 직원 정보 생성 커맨드를 생성하는 메소드는")
   @Nested
-  class csvToEmployeeCreateCommand {
-    private MockMultipartFile mockMultipartFile;
+  class fileToEmployeeCreateCommand {
+    private MockMultipartFile uploadFile;
 
-    @DisplayName("csv 파일이 아닐경우 에러를 반환한다")
+    @DisplayName("csv 또는 json 파일이 아닐경우 에러를 반환한다")
     @Test
     void test1() {
-      var content = """
-        [
-          {
-            "name":"김길동",
-            "email":"kildong.kim@clovf.com",
-            "tel":"010-5678-5678",
-            "joined":"2023-12-01"
-          },
-          {
-            "name":"이길동",
-            "email":"kildong.lee@clovf.com",
-            "tel":"010-6789-6789",
-            "joined":"2023-11-01"
-          }
-        ]
-        """;
+      var content = "텍스트 파일";
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
-        "create_employee.json",
-        "application/json",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
+        "text.txt",
+        "text/plain",
         content.getBytes(StandardCharsets.UTF_8)
       );
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
-      assertThat(exception.getMessage()).isEqualTo("csv 파일만 업로드 가능합니다.");
+      assertThat(exception.getMessage()).isEqualTo("csv 또는 json 파일만 업로드 가능합니다.");
     }
+  }
+
+  @DisplayName("csv 파일 정보로 직원 정보 생성 커맨드를 생성하는 메소드는")
+  @Nested
+  class csvToEmployeeCreateCommand {
+    private MockMultipartFile uploadFile;
 
     @DisplayName("csv 형식이 다를경우 에러를 반환한다")
     @Test
-    void test2() {
+    void test1() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.lee@clovf.com,01067896789,2023.11.01
         박길동,01078907890,2023.10.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -68,7 +59,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("지원하지 않는 csv 형식 입니다.");
@@ -76,14 +67,14 @@ class FileReaderTest {
 
     @DisplayName("직원 이름이 없을 경우 에러를 반환한다")
     @Test
-    void test3() {
+    void test2() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         ,kildong.lee@clovf.com,01067896789,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -91,7 +82,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 이름을 입력해 주세요.");
@@ -99,14 +90,14 @@ class FileReaderTest {
 
     @DisplayName("직원 이메일이 없을 경우 에러를 반환한다")
     @Test
-    void test4() {
+    void test3() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,,01067896789,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -114,7 +105,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 이메일을 입력해 주세요.");
@@ -122,14 +113,14 @@ class FileReaderTest {
 
     @DisplayName("직원 이메일 형식이 다를 경우 에러를 반환한다")
     @Test
-    void test5() {
+    void test4() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kimclovf.com,01067896789,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -137,7 +128,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("이메일 형식이 아닙니다.");
@@ -145,14 +136,14 @@ class FileReaderTest {
 
     @DisplayName("직원 연락처가 없을 경우 에러를 반환한다")
     @Test
-    void test6() {
+    void test5() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kim@clovf.com,,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -160,7 +151,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 연락처를 입력해 주세요.");
@@ -168,14 +159,14 @@ class FileReaderTest {
 
     @DisplayName("직원 연락처가 휴대전화번호(11자리)가 아닐 경우 에러를 반환한다")
     @Test
-    void test7() {
+    void test6() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kim@clovf.com,0212341234,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -183,7 +174,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("휴대전화번호(11자리)만 입력 가능합니다.");
@@ -191,14 +182,14 @@ class FileReaderTest {
 
     @DisplayName("직원 입사일이 없을 경우 에러를 반환한다")
     @Test
-    void test8() {
+    void test7() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kim@clovf.com,01067896789,
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -206,7 +197,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 입사일을 입력해 주세요.");
@@ -214,14 +205,14 @@ class FileReaderTest {
 
     @DisplayName("직원 입사일이 yyyy.MM.dd 형식이 아닐 경우 에러를 반환한다")
     @Test
-    void test9() {
+    void test8() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kim@clovf.com,01067896789,2023-11-01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
@@ -229,7 +220,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.csvToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 입사일은 yyyy.MM.dd만 입력 가능 합니다.");
@@ -237,20 +228,20 @@ class FileReaderTest {
 
     @DisplayName("csv 내용으로 직원 생성 커맨드를 생성한다")
     @Test
-    void test10() {
+    void test9() {
       var content = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.kim@clovf.com,01067896789,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
         "text/csv",
         content.getBytes(StandardCharsets.UTF_8)
       );
 
-      var command = FileReader.csvToEmployeeCreateCommand(mockMultipartFile);
+      var command = FileReader.fileToEmployeeCreateCommand(uploadFile);
 
       assertThat(command).isNotNull();
       assertThat(command.employeeCreateInfoList()).isNotEmpty();
@@ -263,31 +254,11 @@ class FileReaderTest {
   @DisplayName("json 파일 정보로 직원 정보 생성 커맨드를 생성하는 메소드는")
   @Nested
   class jsonToEmployeeCreateCommand {
-    private MockMultipartFile mockMultipartFile;
-
-    @DisplayName("json 파일이 아닐경우 에러를 반환한다")
-    @Test
-    void test1() {
-      var content = """
-        김길동,kildong.kim@clovf.com,01056785678,2023.12.01
-        이길동,kildong.kim@clovf.com,01067896789,2023.11.01
-        """;
-
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
-        "create_employee.csv",
-        "text/csv",
-        content.getBytes(StandardCharsets.UTF_8)
-      );
-
-      var exception = assertThrows(RuntimeException.class, () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile));
-
-      assertThat(exception.getMessage()).isEqualTo("json 파일만 업로드 가능합니다.");
-    }
+    private MockMultipartFile uploadFile;
 
     @DisplayName("json 형식이 다를경우 에러를 반환한다")
     @Test
-    void test2() {
+    void test1() {
       var content = """
         {
           "name":"김길동",
@@ -297,8 +268,8 @@ class FileReaderTest {
         }
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -306,7 +277,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("지원하지 않는 json 형식 입니다.");
@@ -314,7 +285,7 @@ class FileReaderTest {
 
     @DisplayName("직원 이름이 없을 경우 에러를 반환한다")
     @Test
-    void test3() {
+    void test2() {
       var content = """
         [
           {
@@ -332,8 +303,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -341,7 +312,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 이름을 입력해 주세요.");
@@ -349,7 +320,7 @@ class FileReaderTest {
 
     @DisplayName("직원 이메일이 없을 경우 에러를 반환한다")
     @Test
-    void test4() {
+    void test3() {
       var content = """
         [
           {
@@ -367,8 +338,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -376,7 +347,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 이메일을 입력해 주세요.");
@@ -384,7 +355,7 @@ class FileReaderTest {
 
     @DisplayName("직원 이메일 형식이 다를 경우 에러를 반환한다")
     @Test
-    void test5() {
+    void test4() {
       var content = """
         [
           {
@@ -402,8 +373,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -411,7 +382,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("이메일 형식이 아닙니다.");
@@ -419,7 +390,7 @@ class FileReaderTest {
 
     @DisplayName("직원 연락처가 없을 경우 에러를 반환한다")
     @Test
-    void test6() {
+    void test5() {
       var content = """
         [
           {
@@ -437,8 +408,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -446,7 +417,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 연락처를 입력해 주세요.");
@@ -454,7 +425,7 @@ class FileReaderTest {
 
     @DisplayName("직원 연락처 형식이 다를 경우 에러를 반환한다")
     @Test
-    void test7() {
+    void test6() {
       var content = """
         [
           {
@@ -472,8 +443,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -481,7 +452,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("휴대전화번호 형식(xxx-xxxx-xxxx)이 아닙니다.");
@@ -489,7 +460,7 @@ class FileReaderTest {
 
     @DisplayName("직원 입사일이 없을 경우 에러를 반환한다")
     @Test
-    void test8() {
+    void test7() {
       var content = """
         [
           {
@@ -507,8 +478,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -516,7 +487,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 입사일을 입력해 주세요.");
@@ -524,7 +495,7 @@ class FileReaderTest {
 
     @DisplayName("직원 입사일이 yyyy-MM-dd 형식이 아닐 경우 에러를 반환한다")
     @Test
-    void test9() {
+    void test8() {
       var content = """
         [
           {
@@ -542,8 +513,8 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
@@ -551,7 +522,7 @@ class FileReaderTest {
 
       var exception = assertThrows(
         RuntimeException.class,
-        () -> FileReader.jsonToEmployeeCreateCommand(mockMultipartFile)
+        () -> FileReader.fileToEmployeeCreateCommand(uploadFile)
       );
 
       assertThat(exception.getMessage()).isEqualTo("직원 입사일은 yyyy-MM-dd만 입력 가능 합니다.");
@@ -559,7 +530,7 @@ class FileReaderTest {
 
     @DisplayName("json 내용으로 직원 생성 커맨드를 생성한다")
     @Test
-    void test10() {
+    void test9() {
       var content = """
         [
           {
@@ -577,14 +548,14 @@ class FileReaderTest {
         ]
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
+      this.uploadFile = new MockMultipartFile(
+        "uploadFile",
         "create_employee.json",
         "application/json",
         content.getBytes(StandardCharsets.UTF_8)
       );
 
-      var command = FileReader.jsonToEmployeeCreateCommand(mockMultipartFile);
+      var command = FileReader.fileToEmployeeCreateCommand(uploadFile);
 
       assertThat(command).isNotNull();
       assertThat(command.employeeCreateInfoList()).isNotEmpty();
