@@ -2,6 +2,7 @@ package com.practice.employee.web.controller;
 
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
+import com.practice.employee.web.request.EmployeeCreateRequest;
 import com.practice.employee.web.request.EmployeeReadRequest;
 import com.practice.employee.web.response.EmployeeInfoResponse;
 import com.practice.employee.web.utils.FileReader;
@@ -14,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,12 +64,12 @@ public class EmployeeController {
         .toList());
   }
 
-  @PostMapping(value = "/upload/csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<?> createEmployeeByCsvFile(@RequestPart("csvFile") MultipartFile csvFile) {
-    var command = FileReader.csvToEmployeeCreateCommand(csvFile);
+  @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<?> createEmployeeByFile(@RequestPart("uploadFile") MultipartFile uploadFile) {
+    var command = FileReader.fileToEmployeeCreateCommand(uploadFile);
 
     log.info(
-      "csv 파일 정보로 직원 정보 생성: {}",
+      "직원 정보 생성: {}",
       command
     );
 
@@ -77,12 +79,12 @@ public class EmployeeController {
       .build();
   }
 
-  @PostMapping(value = "/upload/json", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  public ResponseEntity<?> createEmployeeByJsonFile(@RequestPart("jsonFile") MultipartFile jsonFile) {
-    var command = FileReader.jsonToEmployeeCreateCommand(jsonFile);
+  @PostMapping
+  public ResponseEntity<?> createEmployeeBy(@RequestBody @Valid EmployeeCreateRequest request) {
+    var command = request.toCommand();
 
     log.info(
-      "json 파일 정보로 직원 정보 생성: {}",
+      "직원 정보 생성: {}",
       command
     );
 

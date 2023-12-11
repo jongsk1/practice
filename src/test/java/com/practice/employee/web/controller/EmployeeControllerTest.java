@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 import static org.springframework.restdocs.mockmvc.RestDocumentationRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,6 +24,7 @@ import com.practice.employee.domain.criteria.EmployeeReadCriteria;
 import com.practice.employee.domain.page.PageResponse;
 import com.practice.employee.domain.usecase.EmployeeUseCase;
 import com.practice.employee.web.config.RestExceptionAdvisor;
+import com.practice.employee.web.request.EmployeeCreateRequest;
 import com.practice.employee.web.response.EmployeeInfoResponse;
 import com.practice.employee.web.utils.FileReader;
 import java.nio.charset.StandardCharsets;
@@ -38,6 +40,7 @@ import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.multipart.MultipartFile;
@@ -239,24 +242,51 @@ class EmployeeControllerTest extends UnitTest {
     }
   }
 
-  @DisplayName("csv 파일 내용으로 직원 정보를 생성하는 메소드는")
+  @DisplayName("파일 내용으로 직원 정보를 생성하는 메소드는")
   @Nested
-  class createEmployeeByCsvFile {
-    private MockMultipartFile mockMultipartFile;
+  class createEmployeeByFile {
+    @Captor
+    private ArgumentCaptor<EmployeeCreateCommand> captor;
+    private MockMultipartFile csv;
+    private MockMultipartFile json;
     private MockedStatic<FileReader> fileReader;
 
     @BeforeEach
     void prepare() {
-      var content = """
+      var csvContent = """
         김길동,kildong.kim@clovf.com,01056785678,2023.12.01
         이길동,kildong.lee@clovf.com,01067896789,2023.11.01
         """;
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "csvFile",
+      this.csv = new MockMultipartFile(
+        "uploadFile",
         "create_employee.csv",
-        "multipart/form-data;charset=UTF-8",
-        content.getBytes(StandardCharsets.UTF_8)
+        "text/csv",
+        csvContent.getBytes(StandardCharsets.UTF_8)
+      );
+
+      var jsonContent = """
+        [
+          {
+            "name":"홍길동",
+            "email":"kildong.kim@clovf.com",
+            "tel":"010-5678-5678",
+            "joined":"2023-12-01"
+          },
+          {
+            "name":"이길동",
+            "email":"kildong.lee@clovf.com",
+            "tel":"010-6789-6789",
+            "joined":"2023-11-01"
+          }
+        ]
+        """;
+
+      this.json = new MockMultipartFile(
+        "uploadFile",
+        "create_employee.json",
+        "application/json",
+        jsonContent.getBytes(StandardCharsets.UTF_8)
       );
 
       this.fileReader = mockStatic(FileReader.class);
@@ -270,11 +300,12 @@ class EmployeeControllerTest extends UnitTest {
     @DisplayName("csv 파일 검증 오류 시 에러를 반환한다")
     @Test
     void test1() throws Exception {
-      fileReader.when(() -> FileReader.csvToEmployeeCreateCommand(any(MultipartFile.class)))
+      fileReader.when(() -> FileReader.fileToEmployeeCreateCommand(any(MultipartFile.class)))
         .thenThrow(RuntimeException.class);
 
-      mockMvc.perform(multipart(BASE_PATH + "/upload/csv").file(mockMultipartFile)
+      mockMvc.perform(multipart(BASE_PATH + "/upload").file(csv)
           .characterEncoding(StandardCharsets.UTF_8))
+        .andDo(print())
         .andExpect(status().isBadRequest());
 
       verifyNoInteractions(employeeUseCase);
@@ -303,71 +334,35 @@ class EmployeeControllerTest extends UnitTest {
           1
         )
       );
-      var command = new EmployeeCreateCommand(
-        List.of(
-          employeeCreateInfo1,
-          employeeCreateInfo2
-        ),
-        "system"
-      );
+      var command = new EmployeeCreateCommand(List.of(
+        employeeCreateInfo1,
+        employeeCreateInfo2
+      ));
 
-      fileReader.when(() -> FileReader.csvToEmployeeCreateCommand(any(MultipartFile.class)))
+      fileReader.when(() -> FileReader.fileToEmployeeCreateCommand(any(MultipartFile.class)))
         .thenReturn(command);
 
-      mockMvc.perform(multipart(BASE_PATH + "/upload/csv").file(mockMultipartFile)
+      mockMvc.perform(multipart(BASE_PATH + "/upload").file(csv)
           .characterEncoding(StandardCharsets.UTF_8))
+        .andDo(print())
         .andExpect(status().isCreated());
-    }
-  }
 
-  @DisplayName("json 파일 내용으로 직원 정보를 생성하는 메소드는")
-  @Nested
-  class createEmployeeByJsonFile {
-    private MockMultipartFile mockMultipartFile;
-    private MockedStatic<FileReader> fileReader;
+      verify(employeeUseCase).createEmployee(captor.capture());
 
-    @BeforeEach
-    void prepare() {
-      var content = """
-        [
-          {
-            "name":"홍길동",
-            "email":"kildong.kim@clovf.com",
-            "tel":"010-5678-5678",
-            "joined":"2023-12-01"
-          },
-          {
-            "name":"이길동",
-            "email":"kildong.lee@clovf.com",
-            "tel":"010-6789-6789",
-            "joined":"2023-11-01"
-          }
-        ]
-        """;
+      var expectedCommand = captor.getValue();
 
-      this.mockMultipartFile = new MockMultipartFile(
-        "jsonFile",
-        "create_employee.json",
-        "application/json",
-        content.getBytes(StandardCharsets.UTF_8)
-      );
-
-      this.fileReader = mockStatic(FileReader.class);
-    }
-
-    @AfterEach
-    void destroy() {
-      fileReader.close();
+      assertThat(command).isEqualTo(expectedCommand);
     }
 
     @DisplayName("json 파일 검증 오류 시 에러를 반환한다")
     @Test
-    void test1() throws Exception {
-      fileReader.when(() -> FileReader.jsonToEmployeeCreateCommand(any(MultipartFile.class)))
+    void test3() throws Exception {
+      fileReader.when(() -> FileReader.fileToEmployeeCreateCommand(any(MultipartFile.class)))
         .thenThrow(RuntimeException.class);
 
-      mockMvc.perform(multipart(BASE_PATH + "/upload/json").file(mockMultipartFile)
+      mockMvc.perform(multipart(BASE_PATH + "/upload").file(json)
           .characterEncoding(StandardCharsets.UTF_8))
+        .andDo(print())
         .andExpect(status().isBadRequest());
 
       verifyNoInteractions(employeeUseCase);
@@ -375,7 +370,7 @@ class EmployeeControllerTest extends UnitTest {
 
     @DisplayName("json 파일 내용으로 만든 커맨드로 EmployeeUseCase 인터페이스의 직원 정보 생성 메소드를 호출한다")
     @Test
-    void test2() throws Exception {
+    void test4() throws Exception {
       var employeeCreateInfo1 = new EmployeeCreateCommand.EmployeeCreateInfo(
         "김길동",
         "kildong.kim@clovf.com",
@@ -396,20 +391,115 @@ class EmployeeControllerTest extends UnitTest {
           1
         )
       );
-      var command = new EmployeeCreateCommand(
-        List.of(
-          employeeCreateInfo1,
-          employeeCreateInfo2
-        ),
-        "system"
-      );
+      var command = new EmployeeCreateCommand(List.of(
+        employeeCreateInfo1,
+        employeeCreateInfo2
+      ));
 
-      fileReader.when(() -> FileReader.jsonToEmployeeCreateCommand(any(MultipartFile.class)))
+      fileReader.when(() -> FileReader.fileToEmployeeCreateCommand(any(MultipartFile.class)))
         .thenReturn(command);
 
-      mockMvc.perform(multipart(BASE_PATH + "/upload/json").file(mockMultipartFile)
+      mockMvc.perform(multipart(BASE_PATH + "/upload").file(json)
           .characterEncoding(StandardCharsets.UTF_8))
+        .andDo(print())
         .andExpect(status().isCreated());
+
+      verify(employeeUseCase).createEmployee(captor.capture());
+
+      var expectedCommand = captor.getValue();
+
+      assertThat(command).isEqualTo(expectedCommand);
+    }
+  }
+
+  @DisplayName("직원 정보 생성 request로 직원 정보를 생성하는 메소드는")
+  @Nested
+  class createEmployeeBy {
+    @Captor
+    private ArgumentCaptor<EmployeeCreateCommand> captor;
+
+    @DisplayName("request 값이 없을 경우 에러를 반환한다")
+    @Test
+    void test1() throws Exception {
+      var content = "   ";
+      var request = new EmployeeCreateRequest(content);
+
+      mockMvc.perform(post(BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+      verifyNoInteractions(employeeUseCase);
+    }
+
+    @DisplayName("지원하지 않는 형식일 경우 에러를 반환한다")
+    @Test
+    void test2() throws Exception {
+      var content = "지원하지 않는 형식";
+      var request = new EmployeeCreateRequest(content);
+
+      mockMvc.perform(post(BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(status().isBadRequest());
+
+      verifyNoInteractions(employeeUseCase);
+    }
+
+    @DisplayName("csv 내용으로 직원 정보 생성 커맨드를 생성하고 EmployeeUseCase 인터페이스의 직원 정보 생성 메소드를 호출한다")
+    @Test
+    void test3() throws Exception {
+      var content = """
+        김길동,kildong.kim@clovf.com,01056785678,2023.12.01
+        이길동,kildong.lee@clovf.com,01067896789,2023.11.01
+        """;
+      var request = new EmployeeCreateRequest(content);
+
+      mockMvc.perform(post(BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(status().isCreated());
+
+      verify(employeeUseCase).createEmployee(captor.capture());
+
+      var expectedCommand = captor.getValue();
+      var requestToCommand = request.toCommand();
+
+      assertThat(expectedCommand).isEqualTo(requestToCommand);
+    }
+
+    @DisplayName("json 내용으로 직원 정보 생성 커맨드를 생성하고 EmployeeUseCase 인터페이스의 직원 정보 생성 메소드를 호출한다")
+    @Test
+    void test4() throws Exception {
+      var content = """
+        [
+          {
+            "name":"홍길동",
+            "email":"kildong.kim@clovf.com",
+            "tel":"010-5678-5678",
+            "joined":"2023-12-01"
+          },
+          {
+            "name":"이길동",
+            "email":"kildong.lee@clovf.com",
+            "tel":"010-6789-6789",
+            "joined":"2023-11-01"
+          }
+        ]
+        """;
+      var request = new EmployeeCreateRequest(content);
+
+      mockMvc.perform(post(BASE_PATH).contentType(MediaType.APPLICATION_JSON)
+          .content(objectMapper.writeValueAsString(request)))
+        .andDo(print())
+        .andExpect(status().isCreated());
+
+      verify(employeeUseCase).createEmployee(captor.capture());
+
+      var expectedCommand = captor.getValue();
+      var requestToCommand = request.toCommand();
+
+      assertThat(expectedCommand).isEqualTo(requestToCommand);
     }
   }
 }
