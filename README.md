@@ -6,6 +6,7 @@
 - db: H2
 
 <h3>Endpoints</h3>
+
 - **GET** /api/employee?page={page}&pageSize={pageSize}
   - response:
     ```
@@ -25,6 +26,7 @@
         },
         ...
       ]
+    }
     ```
     
 - **GET** /api/employee/{name}
