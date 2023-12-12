@@ -15,10 +15,8 @@ import java.util.List;
 import java.util.Map;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.multipart.MultipartFile;
 
-@Slf4j
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class FileReader {
   private static final String CSV_CONTENT_TYPE = "text/csv";

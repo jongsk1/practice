@@ -28,6 +28,7 @@ import org.springframework.web.servlet.NoHandlerFoundException;
 public class RestExceptionAdvisor {
   private final static String DEFAULT_MESSAGE = "시스템 담당자에게 문의 바랍니다.";
   private final static String BINDING_ERROR_MESSAGE = "잘못된 요청입니다.";
+  private final static String VIOLATION_ERROR_MESSAGE = "이미 존재하는 이메일 또는 연락처 입니다.";
 
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<?> badRequestHandler(RuntimeException e) {
@@ -59,7 +60,7 @@ public class RestExceptionAdvisor {
     DataIntegrityViolationException.class
   })
   public ResponseEntity<?> badRequestExceptionHandler(Exception e) {
-    String message = DEFAULT_MESSAGE;
+    var message = DEFAULT_MESSAGE;
 
     log.warn(
       "Bad Request Exception: " + e.getMessage(),
@@ -68,6 +69,10 @@ public class RestExceptionAdvisor {
 
     if (e instanceof BindingResult) {
       message = BINDING_ERROR_MESSAGE;
+    }
+
+    if (e instanceof  DataIntegrityViolationException) {
+      message = VIOLATION_ERROR_MESSAGE;
     }
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST)
