@@ -66,20 +66,22 @@
   - response: 201(Created)
   - e.g. postman 등의 tool로 테스트 시
     - csv 파일 업로드
-      ![](../../Desktop/스크린샷 2023-12-12 오전 11.07.06.png)
-    -
+    - ![스크린샷 2023-12-12 오전 11 07 06](https://github.com/jongsk1/practice/assets/153358845/903dd9bf-44a8-41a2-a067-8757a359e7aa)
+
     - json 파일 업로드
-      ![](../../Desktop/스크린샷 2023-12-12 오전 11.07.31.png)
+    - ![스크린샷 2023-12-12 오전 11 07 31](https://github.com/jongsk1/practice/assets/153358845/66fe5368-886e-419d-b6cb-c3c8cd87ab5f)
+
 -       
 - **POST** /api/employee
   - requestBody : csv 또는 json 형식의 직원 정보
   - response: 201(Created)
   - e.g. postman 등의 tool로 테스트 시
     - csv 형식의 payload
-      ![](../../Desktop/스크린샷 2023-12-12 오전 11.06.03.png)
-    -
+    - ![스크린샷 2023-12-12 오전 11 06 03](https://github.com/jongsk1/practice/assets/153358845/3640c1fb-9d3c-43f0-8346-d2871e9488e5)
+
     - json 형식의 payload
-      ![](../../Desktop/스크린샷 2023-12-12 오전 11.03.44.png)
+    - ![스크린샷 2023-12-12 오전 11 03 44](https://github.com/jongsk1/practice/assets/153358845/c782ab6f-e5e4-467c-9ec3-0b85969a10f7)
+
 -
 - **참고**
   - swagger-ui: http://localhost:8080/swagger-ui/index.html
